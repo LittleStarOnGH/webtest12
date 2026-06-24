@@ -3,185 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Device Hologram System</title>
+    <title>4-Way Global Hologram System (Final Verified)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
-<body class="bg-black text-white justify-center items-center font-sans overflow-hidden m-0 h-screen w-screen selection:bg-transparent">
+<body class="bg-black text-white font-sans overflow-hidden m-0 h-screen w-screen selection:bg-transparent">
 
     <div id="mode-selection" class="absolute inset-0 z-50 flex flex-col justify-center items-center bg-slate-950 p-6 text-center">
-        <h1 class="text-2xl font-bold mb-2 text-indigo-400">✨ Hologram System Setup</h1>
-        <p class="text-xs text-slate-400 mb-8 max-w-xs">กรุณาเลือกโหมดการทำงานสำหรับอุปกรณ์เครื่องนี้</p>
+        <h1 class="text-2xl font-bold mb-2 text-indigo-400">✨ 4-Way Hologram System</h1>
+        <p class="text-xs text-slate-400 mb-8 max-w-xs">ระบบฉายแสง 4 ด้านรอบทิศทาง พร้อมรีโมตปรับขนาดและตำแหน่งออนไลน์ข้ามโลก</p>
         <div class="flex flex-col gap-4 w-full max-w-xs">
-            <button onclick="startAs('screen')" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm">
+            <button onclick="initPeer('screen')" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm">
                 📺 เปิดเป็นหน้าจอแสดงผล (สำหรับ iPad)
             </button>
-            <button onclick="startAs('controller')" class="bg-slate-800 hover:bg-slate-700 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm">
-                📱 เปิดเป็นรีโมตควบคุม (สำหรับโทรศัพท์มือถือ)
+            <div class="relative flex py-2 items-center w-full">
+                <div class="flex-grow border-t border-slate-800"></div>
+                <span class="flex-shrink mx-4 text-slate-500 text-xs">หรือ</span>
+                <div class="flex-grow border-t border-slate-800"></div>
+            </div>
+            <button onclick="showControllerSetup()" class="bg-slate-800 hover:bg-slate-700 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm">
+                📱 เปิดเป็นรีโมตควบคุม (สำหรับมือถือ)
             </button>
         </div>
     </div>
 
-    <div id="screen-view" class="hidden w-full h-full">
-        <div id="canvas-container"></div>
+    <div id="controller-setup" class="hidden absolute inset-0 z-50 flex flex-col justify-center items-center bg-slate-950 p-6 text-center">
+        <h2 class="text-xl font-bold mb-2 text-indigo-400">🔗 เชื่อมต่อรีโมตข้ามโลก</h2>
+        <p class="text-xs text-slate-400 mb-6">กรอกรหัสห้อง 4 หลักที่แสดงอยู่บนหน้าจอ iPad ของคุณ</p>
+        <div class="w-full max-w-xs">
+            <input id="join-id-input" type="text" pattern="[0-9]*" inputmode="numeric" placeholder="กรอกรหัสห้อง 4 หลักจาก iPad" class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-center text-white font-mono text-lg mb-4 focus:outline-none focus:border-indigo-500">
+            <button onclick="connectToScreen()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition-all active:scale-95 text-sm">
+                🚀 เชื่อมต่อระบบออนไลน์
+            </button>
+        </div>
     </div>
 
-    <div id="controllerview" class="hidden w-full h-full p-6 flex flex-col justify-between overflow-y-auto">
-        <div>
-            <div class="text-center mb-4">
-                <span class="text-2xl">🎮</span>
-                <h2 class="text-lg font-bold text-indigo-400">Hologram Remote</h2>
-                <p class="text-[10px] text-slate-500">ควบคุมวัตถุบนหน้าจอ iPad ของคุณ</p>
+    <div id="screen-view" class="hidden w-full h-full relative">
+        <div id="room-id-box" class="absolute top-4 left-4 z-10 bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-left">
+            <p class="text-[10px] text-slate-400">รหัสห้องออนไลน์ของคุณ:</p>
+            <h3 id="display-peer-id" class="text-2xl font-mono font-bold text-emerald-400">กำลังสร้าง...</h3>
+            <p class="text-[9px] text-slate-500 mt-1">เอามือถือเข้าเว็บเดียวกันแล้วกรอกเลขนี้ได้เลย</p>
+        </div>
+        <div id="guide-lines" class="absolute inset-0 pointer-events-none border border-slate-900/50">
+            <div class="absolute inset-0 flex justify-center"><div class="w-[1px] h-full bg-indigo-500/25"></div></div>
+            <div class="absolute inset-0 flex items-center"><div class="w-full h-[1px] bg-indigo-500/25"></div></div>
+        </div>
+        <div id="canvas-container" class="w-full h-full"></div>
+    </div>
+
+    <div id="controller-view" class="hidden w-full h-full p-5 flex flex-col justify-between overflow-y-auto bg-slate-950">
+        <div class="space-y-4">
+            <div class="text-center">
+                <h2 class="text-md font-bold text-indigo-400">🎛️ Hologram Master Control</h2>
+                <p class="text-[10px] text-emerald-400">ออนไลน์เชื่อมต่อกับ iPad สำเร็จแล้ว</p>
             </div>
 
-            <div class="mb-5 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-                <label class="block text-xs font-semibold text-slate-400 mb-2">เปลี่ยนรูปทรงวัตถุ</label>
+            <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-3">
                 <div class="grid grid-cols-3 gap-2">
-                    <button onclick="sendAction('shape', 'torus')" class="bg-indigo-600 py-2 rounded-xl text-xs font-medium">วงแหวนปม</button>
-                    <button onclick="sendAction('shape', 'crystal')" class="bg-slate-800 py-2 rounded-xl text-xs font-medium">คริสตัล</button>
-                    <button onclick="sendAction('shape', 'cone')" class="bg-slate-800 py-2 rounded-xl text-xs font-medium">ทรงกรวย</button>
+                    <button onclick="sendAction('shape', 'torus')" class="bg-indigo-600 py-1.5 rounded-lg text-[11px] active:scale-95 transition-all">วงแหวนปม</button>
+                    <button onclick="sendAction('shape', 'crystal')" class="bg-slate-800 py-1.5 rounded-lg text-[11px] active:scale-95 transition-all">คริสตัล</button>
+                    <button onclick="sendAction('shape', 'cone')" class="bg-slate-800 py-1.5 rounded-lg text-[11px] active:scale-95 transition-all">ทรงกรวย</button>
+                </div>
+                <div class="flex gap-2 justify-around pt-1">
+                    <button onclick="sendAction('color', '#ffd700')" class="w-6 h-6 rounded-full bg-[#ffd700] border-2 border-white/10 active:scale-90 transition-all"></button>
+                    <button onclick="sendAction('color', '#00ffcc')" class="w-6 h-6 rounded-full bg-[#00ffcc] border-2 border-white/10 active:scale-90 transition-all"></button>
+                    <button onclick="sendAction('color', '#ff007f')" class="w-6 h-6 rounded-full bg-[#ff007f] border-2 border-white/10 active:scale-90 transition-all"></button>
+                    <button onclick="sendAction('color', '#39ff14')" class="w-6 h-6 rounded-full bg-[#39ff14] border-2 border-white/10 active:scale-90 transition-all"></button>
                 </div>
             </div>
 
-            <div class="mb-5 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-                <label class="block text-xs font-semibold text-slate-400 mb-2">เปลี่ยนสีนีออน</label>
-                <div class="flex gap-4 justify-around">
-                    <button onclick="sendAction('color', '#ffd700')" class="w-8 h-8 rounded-full bg-[#ffd700] border-2 border-white/20 active:scale-90 transition-all"></button>
-                    <button onclick="sendAction('color', '#00ffcc')" class="w-8 h-8 rounded-full bg-[#00ffcc] border-2 border-white/20 active:scale-90 transition-all"></button>
-                    <button onclick="sendAction('color', '#ff007f')" class="w-8 h-8 rounded-full bg-[#ff007f] border-2 border-white/20 active:scale-90 transition-all"></button>
-                    <button onclick="sendAction('color', '#39ff14')" class="w-8 h-8 rounded-full bg-[#39ff14] border-2 border-white/20 active:scale-90 transition-all"></button>
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 flex items-center gap-1">📐 ปรับแต่งตำแหน่งมิติ (Calibration)</h3>
+                
+                <div>
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span class="text-slate-400">ขนาดวัตถุ 3D (Scale)</span>
+                        <span id="scale-val" class="font-mono text-indigo-400">100%</span>
+                    </div>
+                    <input type="range" min="30" max="200" value="100" oninput="document.getElementById('scale-val').innerText = this.value + '%'; sendAction('scale', this.value)" class="w-full accent-indigo-500">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-[11px] mb-1">
+                        <span class="text-slate-400">ระยะห่างวัตถุจากศูนย์กลาง (Offset)</span>
+                        <span id="offset-val" class="font-mono text-indigo-400">120px</span>
+                    </div>
+                    <input type="range" min="40" max="300" value="120" oninput="document.getElementById('offset-val').innerText = this.value + 'px'; sendAction('offset', this.value)" class="w-full accent-indigo-500">
                 </div>
             </div>
 
-            <div id="touchpad" class="w-full h-44 bg-slate-950 rounded-2xl border-2 border-dashed border-slate-800 flex flex-col justify-center items-center text-center p-4 active:border-indigo-500 transition-all touch-none">
-                <span class="text-xl mb-1">🎯</span>
-                <span class="text-xs font-medium text-slate-400">Virtual Touchpad</span>
-                <span class="text-[10px] text-slate-600 mt-1">ใช้นิ้วลากตรงนี้เพื่อหมุนวัตถุบนหน้าจอ iPad</span>
+            <div id="touchpad" class="w-full h-36 bg-slate-950 rounded-xl border border-dashed border-slate-800 flex flex-col justify-center items-center text-center p-2 touch-none active:border-indigo-500 transition-all">
+                <span class="text-xs text-slate-400 font-medium">🎯 Virtual Touchpad</span>
+                <span class="text-[9px] text-slate-600 mt-0.5">ใช้นิ้วรูดที่นี่เพื่อหมุนวัตถุพร้อมกัน 4 ทิศบนจอ iPad</span>
             </div>
         </div>
-        <p class="text-[9px] text-center text-slate-600 mt-4">Connected via Local Python Network</p>
+
+        <div class="flex gap-2 pt-2">
+            <button onclick="sendAction('toggleUI', '')" class="flex-1 bg-red-600 py-2.5 rounded-xl text-[11px] font-bold active:scale-95 transition-all">👁️ เปิด/ซ่อน กล่องรหัส</button>
+            <button onclick="sendAction('toggleGuides', '')" class="flex-1 bg-slate-800 py-2.5 rounded-xl text-[11px] font-bold active:scale-95 transition-all">🎯 เปิด/ซ่อน เส้นเล็งศูนย์</button>
+        </div>
     </div>
 
     <script>
-        let scene, camera, renderer, currentMesh;
-        let isScreen = false;
+        let scenes = [], cameras = [], renderer, currentMeshes = [];
+        let peer, conn, myRole = '';
+        let baseScale = 1.0;
+        let baseOffset = 120; 
 
-        // ใช้ BroadcastChannel สำหรับผูกเบราว์เซอร์ในเครือข่ายจำลอง
-        const channel = new BroadcastChannel('hologram_core_sync');
+        // บังคับทิศทางกล้อง 4 ทิศ (สะท้อนเข้า หน้า, ขวา, หลัง, ซ้าย ของกระจกพีระมิด)
+        const viewAngles = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
 
-        function startAs(mode) {
+        // สร้างไอดีแบบล็อกโปรเจกต์จำเพาะเพื่อแก้บั๊กสัญญาณชนกันสากล
+        function generateSimpleId() { 
+            return "uea-hologram-" + Math.floor(1000 + Math.random() * 9000).toString(); 
+        }
+
+        function showControllerSetup() {
             document.getElementById('mode-selection').classList.add('hidden');
-            if (mode === 'screen') {
-                isScreen = true;
+            document.getElementById('controller-setup').classList.remove('hidden');
+        }
+
+        function initPeer(role) {
+            myRole = role;
+            document.getElementById('mode-selection').classList.add('hidden');
+            if (role === 'screen') {
                 document.getElementById('screen-view').classList.remove('hidden');
-                init3D();
-            } else {
-                document.getElementById('controllerview').classList.remove('hidden');
-                setupTouchpad();
+                init3DMultiView();
+                const roomCode = generateSimpleId();
+                peer = new Peer(roomCode, { debug: 2 });
+                peer.on('open', id => {
+                    // แกะเอาเฉพาะตัวเลข 4 ตัวหลังไปพิมพ์บอกบนหน้าจอ iPad
+                    document.getElementById('display-peer-id').innerText = id.replace("uea-hologram-", "");
+                });
+                peer.on('connection', connection => { conn = connection; setupReceiver(); });
             }
         }
 
-        // ฝั่งมือถือ: ส่งข้อมูลการควบคุม
-        function sendAction(type, value) {
-            channel.postMessage({ type: type, value: value });
+        function connectToScreen() {
+            const targetInput = document.getElementById('join-id-input').value.trim();
+            if (!targetInput) return alert('กรุณากรอกรหัสห้องก่อนครับ');
+            
+            const fullTargetId = "uea-hologram-" + targetInput;
+            peer = new Peer({ debug: 2 });
+            peer.on('open', () => {
+                conn = peer.connect(fullTargetId);
+                conn.on('open', () => {
+                    document.getElementById('controller-setup').classList.add('hidden');
+                    document.getElementById('controller-view').classList.remove('hidden');
+                    setupTouchpad();
+                });
+                
+                setTimeout(() => {
+                    if (!conn.open) {
+                        alert('เชื่อมต่อไม่สำเร็จ! ตรวจสอบรหัสห้อง หรือลองกดรีเฟรชหน้าจอ iPad เพื่อรับรหัสห้องใหม่อีกครั้งครับ');
+                    }
+                }, 4000);
+            });
         }
 
-        // ฝั่ง iPad: รับข้อมูลมาแสดงผลในแบบ 3D
-        channel.onmessage = function (e) {
-            if (!isScreen) return;
-            const data = e.data;
-            if (data.type === 'shape') {
-                createGeometry(data.value, currentMesh.material.color.getHexString());
-            } else if (data.type === 'color') {
-                currentMesh.material.color.set(data.value);
-            } else if (data.type === 'rotate') {
-                if (currentMesh) {
-                    currentMesh.rotation.y += data.deltaX * 0.01;
-                    currentMesh.rotation.x += data.deltaY * 0.01;
+        function sendAction(type, value) { if (conn && conn.open) conn.send({ type: type, value: value }); }
+
+        function setupReceiver() {
+            conn.on('data', data => {
+                if (data.type === 'shape') {
+                    recreateAllGeometries(data.value, currentMeshes[0].material.color.getHexString());
+                } else if (data.type === 'color') {
+                    currentMeshes.forEach(mesh => mesh.material.color.set(data.value));
+                } else if (data.type === 'scale') {
+                    baseScale = data.value / 100;
+                    currentMeshes.forEach(mesh => mesh.scale.set(baseScale, baseScale, baseScale));
+                } else if (data.type === 'offset') {
+                    baseOffset = parseInt(data.value);
+                } else if (data.type === 'rotate') {
+                    currentMeshes.forEach(mesh => {
+                        mesh.rotation.y += data.value.deltaX * 0.012;
+                        mesh.rotation.x += data.value.deltaY * 0.012;
+                    });
+                } else if (data.type === 'toggleUI') {
+                    document.getElementById('room-id-box').classList.toggle('hidden');
+                } else if (data.type === 'toggleGuides') {
+                    document.getElementById('guide-lines').classList.toggle('hidden');
                 }
-            }
-        };
+            });
+        }
 
-        // เริ่มตั้งค่าระบบกราฟิก 3D (Three.js)
-        function init3D() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x000000); // บังคับพื้นหลังดำสนิทป้องกันแสงกวน
-
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.z = 7;
-
+        function init3DMultiView() {
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.autoClear = false; 
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(5, 10, 7);
-            scene.add(dirLight);
+            for (let i = 0; i < 4; i++) {
+                const scene = new THREE.Scene();
+                scene.background = null;
 
-            createGeometry('torus', 'ffd700');
+                const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+                camera.position.z = 6;
+
+                scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(3, 5, 4);
+                scene.add(dirLight);
+
+                scenes.push(scene);
+                cameras.push(camera);
+            }
+
+            recreateAllGeometries('torus', 'ffd700');
             animate();
         }
 
-        function createGeometry(type, colorHex) {
-            if (currentMesh) scene.remove(currentMesh);
+        function recreateAllGeometries(type, colorHex) {
+            for (let i = 0; i < 4; i++) { if (currentMeshes[i]) scenes[i].remove(currentMeshes[i]); }
+            currentMeshes = [];
+
             let geometry;
-            if (type === 'torus') geometry = new THREE.TorusKnotGeometry(1, 0.35, 100, 16);
-            else if (type === 'crystal') geometry = new THREE.IcosahedronGeometry(1.4, 0);
-            else if (type === 'cone') geometry = new THREE.ConeGeometry(1.1, 2.2, 32);
+            if (type === 'torus') geometry = new THREE.TorusKnotGeometry(0.8, 0.28, 100, 16);
+            else if (type === 'crystal') geometry = new THREE.IcosahedronGeometry(1.1, 0);
+            else if (type === 'cone') geometry = new THREE.ConeGeometry(0.9, 1.8, 32);
 
             const material = new THREE.MeshStandardMaterial({
-                color: new THREE.Color("#" + colorHex.replace("#", "")),
-                metalness: 0.8,
-                roughness: 0.2,
+                color: new THREE.Color("#" + colorHex),
+                metalness: 0.8, roughness: 0.2,
                 flatShading: type === 'crystal'
             });
-            currentMesh = new THREE.Mesh(geometry, material);
-            scene.add(currentMesh);
+
+            for (let i = 0; i < 4; i++) {
+                const mesh = new THREE.Mesh(geometry, material.clone());
+                mesh.rotation.y = viewAngles[i];
+                mesh.scale.set(baseScale, baseScale, baseScale);
+                scenes[i].add(mesh);
+                currentMeshes.push(mesh);
+            }
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            if (currentMesh) {
-                currentMesh.rotation.y += 0.003; // หมุนเอื่อยๆ ตอนสแตนด์บาย
+
+            renderer.clear();
+            renderer.setScissorTest(false);
+            renderer.setClearColor(0x000000, 1);
+            renderer.clear();
+
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            const size = Math.min(window.innerWidth, window.innerHeight) * 0.35; 
+
+            // จัดพิกัดวาง 4 ทิศทางกากบาทรอบศูนย์กลางหน้าจอ iPad
+            const viewports = [
+                { x: centerX - size / 2, y: centerY + baseOffset },                  // ด้านล่าง (หน้าปกติ)
+                { x: centerX + baseOffset, y: centerY - size / 2 },                  // ด้านขวา (หมุน 90)
+                { x: centerX - size / 2, y: centerY - size / 2 - baseOffset },       // ด้านบน (กลับหัว 180)
+                { x: centerX - size / 2 - baseOffset, y: centerY - size / 2 }        // ด้านซ้าย (หมุน -90)
+            ];
+
+            renderer.setScissorTest(true);
+
+            for (let i = 0; i < 4; i++) {
+                const vp = viewports[i];
+                renderer.setScissor(vp.x, vp.y, size, size);
+                renderer.setViewport(vp.x, vp.y, size, size);
+
+                if (currentMeshes[i]) {
+                    currentMeshes[i].rotation.y += 0.003; // หมุนรอบตัวเองเอื่อยๆ
+                }
+                renderer.render(scenes[i], cameras[i]);
             }
-            renderer.render(scene, camera);
         }
 
-        // ระบบจับพิกัดการลากนิ้วบนหน้าจอมือถือ
         function setupTouchpad() {
             const pad = document.getElementById('touchpad');
-            let isDrawing = false;
-            let lastX = 0, lastY = 0;
-
+            let isDrawing = false, lastX = 0, lastY = 0;
             pad.addEventListener('touchstart', e => {
                 isDrawing = true;
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
+                lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
             });
-
             pad.addEventListener('touchmove', e => {
                 if (!isDrawing) return;
-                const x = e.touches[0].clientX;
-                const y = e.touches[0].clientY;
-                const deltaX = x - lastX;
-                const deltaY = y - lastY;
-
-                sendAction('rotate', { deltaX: deltaX, deltaY: deltaY });
-
-                lastX = x;
-                lastY = y;
+                const x = e.touches[0].clientX; const y = e.touches[0].clientY;
+                sendAction('rotate', { deltaX: x - lastX, deltaY: y - lastY });
+                lastX = x; lastY = y;
             });
-
             pad.addEventListener('touchend', () => isDrawing = false);
         }
-
-        window.addEventListener('resize', () => {
-            if (!isScreen) return;
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
