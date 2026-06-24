@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4-Way Global Hologram System (Final Verified)</title>
+    <title>3-Way Global Hologram System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -11,8 +11,8 @@
 <body class="bg-black text-white font-sans overflow-hidden m-0 h-screen w-screen selection:bg-transparent">
 
     <div id="mode-selection" class="absolute inset-0 z-50 flex flex-col justify-center items-center bg-slate-950 p-6 text-center">
-        <h1 class="text-2xl font-bold mb-2 text-indigo-400">✨ 4-Way Hologram System</h1>
-        <p class="text-xs text-slate-400 mb-8 max-w-xs">ระบบฉายแสง 4 ด้านรอบทิศทาง พร้อมรีโมตปรับขนาดและตำแหน่งออนไลน์ข้ามโลก</p>
+        <h1 class="text-2xl font-bold mb-2 text-indigo-400">📐 3-Way Hologram System</h1>
+        <p class="text-xs text-slate-400 mb-8 max-w-xs">ระบบฉายแสง 3 ด้านสมมาตร สำหรับแท่นพีระมิดทรงสามเหลี่ยม</p>
         <div class="flex flex-col gap-4 w-full max-w-xs">
             <button onclick="initPeer('screen')" class="bg-indigo-600 hover:bg-indigo-500 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm">
                 📺 เปิดเป็นหน้าจอแสดงผล (สำหรับ iPad)
@@ -29,8 +29,7 @@
     </div>
 
     <div id="controller-setup" class="hidden absolute inset-0 z-50 flex flex-col justify-center items-center bg-slate-950 p-6 text-center">
-        <h2 class="text-xl font-bold mb-2 text-indigo-400">🔗 เชื่อมต่อรีโมตข้ามโลก</h2>
-        <p class="text-xs text-slate-400 mb-6">กรอกรหัสห้อง 4 หลักที่แสดงอยู่บนหน้าจอ iPad ของคุณ</p>
+        <h2 class="text-xl font-bold mb-2 text-indigo-400">🔗 เชื่อมต่อรีโมต 3 ด้าน</h2>
         <div class="w-full max-w-xs">
             <input id="join-id-input" type="text" pattern="[0-9]*" inputmode="numeric" placeholder="กรอกรหัสห้อง 4 หลักจาก iPad" class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 px-4 text-center text-white font-mono text-lg mb-4 focus:outline-none focus:border-indigo-500">
             <button onclick="connectToScreen()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold transition-all active:scale-95 text-sm">
@@ -41,13 +40,12 @@
 
     <div id="screen-view" class="hidden w-full h-full relative">
         <div id="room-id-box" class="absolute top-4 left-4 z-10 bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-left">
-            <p class="text-[10px] text-slate-400">รหัสห้องออนไลน์ของคุณ:</p>
+            <p class="text-[10px] text-slate-400">รหัสห้องออนไลน์ 3 ด้านของคุณ:</p>
             <h3 id="display-peer-id" class="text-2xl font-mono font-bold text-emerald-400">กำลังสร้าง...</h3>
-            <p class="text-[9px] text-slate-500 mt-1">เอามือถือเข้าเว็บเดียวกันแล้วกรอกเลขนี้ได้เลย</p>
         </div>
-        <div id="guide-lines" class="absolute inset-0 pointer-events-none border border-slate-900/50">
-            <div class="absolute inset-0 flex justify-center"><div class="w-[1px] h-full bg-indigo-500/25"></div></div>
-            <div class="absolute inset-0 flex items-center"><div class="w-full h-[1px] bg-indigo-500/25"></div></div>
+        <div id="guide-lines" class="absolute inset-0 pointer-events-none">
+            <div class="absolute inset-0 flex justify-center"><div class="w-[1px] h-full bg-indigo-500/20"></div></div>
+            <div class="absolute inset-0 flex items-center"><div class="w-full h-[1px] bg-indigo-500/20"></div></div>
         </div>
         <div id="canvas-container" class="w-full h-full"></div>
     </div>
@@ -55,53 +53,51 @@
     <div id="controller-view" class="hidden w-full h-full p-5 flex flex-col justify-between overflow-y-auto bg-slate-950">
         <div class="space-y-4">
             <div class="text-center">
-                <h2 class="text-md font-bold text-indigo-400">🎛️ Hologram Master Control</h2>
-                <p class="text-[10px] text-emerald-400">ออนไลน์เชื่อมต่อกับ iPad สำเร็จแล้ว</p>
+                <h2 class="text-md font-bold text-indigo-400">🎛️ 3-Way Master Control</h2>
+                <p class="text-[10px] text-emerald-400">เชื่อมต่อเข้ากับแท่นสามเหลี่ยมสำเร็จ</p>
             </div>
 
             <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-3">
                 <div class="grid grid-cols-3 gap-2">
-                    <button onclick="sendAction('shape', 'torus')" class="bg-indigo-600 py-1.5 rounded-lg text-[11px] active:scale-95 transition-all">วงแหวนปม</button>
-                    <button onclick="sendAction('shape', 'crystal')" class="bg-slate-800 py-1.5 rounded-lg text-[11px] active:scale-95 transition-all">คริสตัล</button>
-                    <button onclick="sendAction('shape', 'cone')" class="bg-slate-800 py-1.5 rounded-lg text-[11px] active:scale-95 transition-all">ทรงกรวย</button>
+                    <button onclick="sendAction('shape', 'torus')" class="bg-indigo-600 py-1.5 rounded-lg text-[11px]">วงแหวนปม</button>
+                    <button onclick="sendAction('shape', 'crystal')" class="bg-slate-800 py-1.5 rounded-lg text-[11px]">คริสตัล</button>
+                    <button onclick="sendAction('shape', 'cone')" class="bg-slate-800 py-1.5 rounded-lg text-[11px]">ทรงกรวย</button>
                 </div>
                 <div class="flex gap-2 justify-around pt-1">
-                    <button onclick="sendAction('color', '#ffd700')" class="w-6 h-6 rounded-full bg-[#ffd700] border-2 border-white/10 active:scale-90 transition-all"></button>
-                    <button onclick="sendAction('color', '#00ffcc')" class="w-6 h-6 rounded-full bg-[#00ffcc] border-2 border-white/10 active:scale-90 transition-all"></button>
-                    <button onclick="sendAction('color', '#ff007f')" class="w-6 h-6 rounded-full bg-[#ff007f] border-2 border-white/10 active:scale-90 transition-all"></button>
-                    <button onclick="sendAction('color', '#39ff14')" class="w-6 h-6 rounded-full bg-[#39ff14] border-2 border-white/10 active:scale-90 transition-all"></button>
+                    <button onclick="sendAction('color', '#ffd700')" class="w-6 h-6 rounded-full bg-[#ffd700]"></button>
+                    <button onclick="sendAction('color', '#00ffcc')" class="w-6 h-6 rounded-full bg-[#00ffcc]"></button>
+                    <button onclick="sendAction('color', '#ff007f')" class="w-6 h-6 rounded-full bg-[#ff007f]"></button>
+                    <button onclick="sendAction('color', '#39ff14')" class="w-6 h-6 rounded-full bg-[#39ff14]"></button>
                 </div>
             </div>
 
             <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-3">
-                <h3 class="text-xs font-bold text-slate-400 flex items-center gap-1">📐 ปรับแต่งตำแหน่งมิติ (Calibration)</h3>
-                
+                <h3 class="text-xs font-bold text-slate-400">📐 ปรับตำแหน่งให้ตรงกระจก 3 ด้าน</h3>
                 <div>
                     <div class="flex justify-between text-[11px] mb-1">
-                        <span class="text-slate-400">ขนาดวัตถุ 3D (Scale)</span>
+                        <span class="text-slate-400">ขนาดวัตถุ (Scale)</span>
                         <span id="scale-val" class="font-mono text-indigo-400">100%</span>
                     </div>
                     <input type="range" min="30" max="200" value="100" oninput="document.getElementById('scale-val').innerText = this.value + '%'; sendAction('scale', this.value)" class="w-full accent-indigo-500">
                 </div>
-
                 <div>
                     <div class="flex justify-between text-[11px] mb-1">
-                        <span class="text-slate-400">ระยะห่างวัตถุจากศูนย์กลาง (Offset)</span>
-                        <span id="offset-val" class="font-mono text-indigo-400">120px</span>
+                        <span class="text-slate-400">ระยะห่างจากศูนย์กลาง (Offset)</span>
+                        <span id="offset-val" class="font-mono text-indigo-400">130px</span>
                     </div>
-                    <input type="range" min="40" max="300" value="120" oninput="document.getElementById('offset-val').innerText = this.value + 'px'; sendAction('offset', this.value)" class="w-full accent-indigo-500">
+                    <input type="range" min="40" max="300" value="130" oninput="document.getElementById('offset-val').innerText = this.value + 'px'; sendAction('offset', this.value)" class="w-full accent-indigo-500">
                 </div>
             </div>
 
-            <div id="touchpad" class="w-full h-36 bg-slate-950 rounded-xl border border-dashed border-slate-800 flex flex-col justify-center items-center text-center p-2 touch-none active:border-indigo-500 transition-all">
+            <div id="touchpad" class="w-full h-36 bg-slate-950 rounded-xl border border-dashed border-slate-800 flex flex-col justify-center items-center text-center p-2 touch-none">
                 <span class="text-xs text-slate-400 font-medium">🎯 Virtual Touchpad</span>
-                <span class="text-[9px] text-slate-600 mt-0.5">ใช้นิ้วรูดที่นี่เพื่อหมุนวัตถุพร้อมกัน 4 ทิศบนจอ iPad</span>
+                <span class="text-[9px] text-slate-600">ลากเพื่อหมุนวัตถุ 3 ด้านพร้อมกัน</span>
             </div>
         </div>
 
         <div class="flex gap-2 pt-2">
-            <button onclick="sendAction('toggleUI', '')" class="flex-1 bg-red-600 py-2.5 rounded-xl text-[11px] font-bold active:scale-95 transition-all">👁️ เปิด/ซ่อน กล่องรหัส</button>
-            <button onclick="sendAction('toggleGuides', '')" class="flex-1 bg-slate-800 py-2.5 rounded-xl text-[11px] font-bold active:scale-95 transition-all">🎯 เปิด/ซ่อน เส้นเล็งศูนย์</button>
+            <button onclick="sendAction('toggleUI', '')" class="flex-1 bg-red-600 py-2.5 rounded-xl text-[11px] font-bold">👁️ ซ่อนกล่องรหัส</button>
+            <button onclick="sendAction('toggleGuides', '')" class="flex-1 bg-slate-800 py-2.5 rounded-xl text-[11px] font-bold">🎯 ซ่อนเส้นเล็ง</button>
         </div>
     </div>
 
@@ -109,16 +105,12 @@
         let scenes = [], cameras = [], renderer, currentMeshes = [];
         let peer, conn, myRole = '';
         let baseScale = 1.0;
-        let baseOffset = 120; 
+        let baseOffset = 130; 
 
-        // บังคับทิศทางกล้อง 4 ทิศ (สะท้อนเข้า หน้า, ขวา, หลัง, ซ้าย ของกระจกพีระมิด)
-        const viewAngles = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
+        // คำนวณมุมกล้องหันหาวัตถุห่างกันด้านละ 120 องศาพอดีเป๊ะ (0, 120, 240)
+        const viewAngles = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
 
-        // สร้างไอดีแบบล็อกโปรเจกต์จำเพาะเพื่อแก้บั๊กสัญญาณชนกันสากล
-        function generateSimpleId() { 
-            return "uea-hologram-" + Math.floor(1000 + Math.random() * 9000).toString(); 
-        }
-
+        function generateSimpleId() { return "uea-3way-" + Math.floor(1000 + Math.random() * 9000).toString(); }
         function showControllerSetup() {
             document.getElementById('mode-selection').classList.add('hidden');
             document.getElementById('controller-setup').classList.remove('hidden');
@@ -132,19 +124,15 @@
                 init3DMultiView();
                 const roomCode = generateSimpleId();
                 peer = new Peer(roomCode, { debug: 2 });
-                peer.on('open', id => {
-                    // แกะเอาเฉพาะตัวเลข 4 ตัวหลังไปพิมพ์บอกบนหน้าจอ iPad
-                    document.getElementById('display-peer-id').innerText = id.replace("uea-hologram-", "");
-                });
+                peer.on('open', id => document.getElementById('display-peer-id').innerText = id.replace("uea-3way-", ""));
                 peer.on('connection', connection => { conn = connection; setupReceiver(); });
             }
         }
 
         function connectToScreen() {
             const targetInput = document.getElementById('join-id-input').value.trim();
-            if (!targetInput) return alert('กรุณากรอกรหัสห้องก่อนครับ');
-            
-            const fullTargetId = "uea-hologram-" + targetInput;
+            if (!targetInput) return alert('กรุณากรอกรหัสห้องครับ');
+            const fullTargetId = "uea-3way-" + targetInput;
             peer = new Peer({ debug: 2 });
             peer.on('open', () => {
                 conn = peer.connect(fullTargetId);
@@ -153,12 +141,6 @@
                     document.getElementById('controller-view').classList.remove('hidden');
                     setupTouchpad();
                 });
-                
-                setTimeout(() => {
-                    if (!conn.open) {
-                        alert('เชื่อมต่อไม่สำเร็จ! ตรวจสอบรหัสห้อง หรือลองกดรีเฟรชหน้าจอ iPad เพื่อรับรหัสห้องใหม่อีกครั้งครับ');
-                    }
-                }, 4000);
             });
         }
 
@@ -195,14 +177,14 @@
             renderer.autoClear = false; 
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 3; i++) {
                 const scene = new THREE.Scene();
                 scene.background = null;
 
                 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
                 camera.position.z = 6;
 
-                scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+                scene.add(new THREE.AmbientLight(0xffffff, 0.6));
                 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
                 dirLight.position.set(3, 5, 4);
                 scene.add(dirLight);
@@ -216,7 +198,7 @@
         }
 
         function recreateAllGeometries(type, colorHex) {
-            for (let i = 0; i < 4; i++) { if (currentMeshes[i]) scenes[i].remove(currentMeshes[i]); }
+            for (let i = 0; i < 3; i++) { if (currentMeshes[i]) scenes[i].remove(currentMeshes[i]); }
             currentMeshes = [];
 
             let geometry;
@@ -230,9 +212,9 @@
                 flatShading: type === 'crystal'
             });
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 3; i++) {
                 const mesh = new THREE.Mesh(geometry, material.clone());
-                mesh.rotation.y = viewAngles[i];
+                mesh.rotation.y = viewAngles[i]; // หันหน้าวัตถุแยกมุมกันตัวละ 120 องศา
                 mesh.scale.set(baseScale, baseScale, baseScale);
                 scenes[i].add(mesh);
                 currentMeshes.push(mesh);
@@ -251,23 +233,22 @@
             const centerY = window.innerHeight / 2;
             const size = Math.min(window.innerWidth, window.innerHeight) * 0.35; 
 
-            // จัดพิกัดวาง 4 ทิศทางกากบาทรอบศูนย์กลางหน้าจอ iPad
+            // คำนวณจุดวางพิกัดกระจายออก 3 ทิศทางแบบรัศมีวงกลมสลับมุมฉายสะท้อนเข้าแผ่นกระจกทั้ง 3 บาน
             const viewports = [
-                { x: centerX - size / 2, y: centerY + baseOffset },                  // ด้านล่าง (หน้าปกติ)
-                { x: centerX + baseOffset, y: centerY - size / 2 },                  // ด้านขวา (หมุน 90)
-                { x: centerX - size / 2, y: centerY - size / 2 - baseOffset },       // ด้านบน (กลับหัว 180)
-                { x: centerX - size / 2 - baseOffset, y: centerY - size / 2 }        // ด้านซ้าย (หมุน -90)
+                { x: centerX - size / 2, y: centerY - size / 2 + baseOffset }, // ด้านบนตรงกลางทำมุม 0 องศา
+                { x: centerX - size / 2 + (baseOffset * Math.cos((7 * Math.PI) / 6)), y: centerY - size / 2 + (baseOffset * Math.sin((7 * Math.PI) / 6)) }, // ล่างซ้ายทำมุม 120 องศา
+                { x: centerX - size / 2 + (baseOffset * Math.cos((11 * Math.PI) / 6)), y: centerY - size / 2 + (baseOffset * Math.sin((11 * Math.PI) / 6)) } // ล่างขวาทำมุม 240 องศา
             ];
 
             renderer.setScissorTest(true);
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 3; i++) {
                 const vp = viewports[i];
                 renderer.setScissor(vp.x, vp.y, size, size);
                 renderer.setViewport(vp.x, vp.y, size, size);
 
                 if (currentMeshes[i]) {
-                    currentMeshes[i].rotation.y += 0.003; // หมุนรอบตัวเองเอื่อยๆ
+                    currentMeshes[i].rotation.y += 0.003; 
                 }
                 renderer.render(scenes[i], cameras[i]);
             }
