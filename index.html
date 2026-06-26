@@ -385,7 +385,7 @@
             if (type === 'custom_artifact') {
                 const loader = new THREE.GLTFLoader();
                 
-                loader.load('Sohn_DoorLock_100463952.gltf', function (gltf) {
+                loader.load('Sohn_DoorLock_100463952.glb', function (gltf) {
                    for (let i = 0; i < 3; i++) {
                         const modelClone = gltf.scene.clone(); 
                         modelClone.rotation.y = viewAngles[i];
