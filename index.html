@@ -387,13 +387,14 @@
                 
                 loader.load('Sohn_DoorLock_100463952.gltf', function (gltf) {
                     for (let i = 0; i < 3; i++) {
-                        const modelClone = gltf.scene.clone(); 
+                        const modelClone = gltf.scene.clone(); // แยกร่างวัตถุเป็น 3 ด้าน
                         modelClone.rotation.y = viewAngles[i];
                         modelClone.scale.set(baseScale, baseScale, baseScale);
                         
+                        // ซิงก์ระบบเปลี่ยนสีวัตถุตามแถบคำสั่งรีโมต
                         modelClone.traverse((child) => {
                             if (child.isMesh && child.material) {
-                                child.material.color.set(colorHex);
+                                child.material.color.set("#" + colorHex);
                             }
                         });
 
@@ -401,7 +402,7 @@
                         currentMeshes.push(modelClone);
                     }
                 }, undefined, function (error) {
-                    console.error('ไม่สามารถดึงไฟล์ DoorLock ขึ้นมาได้:', error);
+                    console.error('ไม่สามารถดึงไฟล์โมเดลขึ้นมาแสดงผลได้:', error);
                 });
 
             } else {
