@@ -18,7 +18,7 @@
             <p class="text-xs text-indigo-600 font-bold tracking-widest uppercase">School of Engineering Physics and Mathematics</p>
             <img src="uea-logo.png" alt="University Logo" class="h-12 w-auto opacity-80 hover:opacity-100 transition-all mx-auto mt-2">
         </div>
-        <h1 class="text-3xl font-black mb-2 text-slate-800"> "Hologram" Project EMP2 </h1>
+        <h1 class="text-3xl font-black mb-2 text-slate-800"> "Hologram" Project </h1>
         <p class="text-xs text-slate-500 mb-8 max-w-xs">ระบบฉายแสง 3 ด้านสมมาตร ควบคุมผ่าน Touchpad หรือกล้องสแกนวัตถุจริง</p>
         <div class="flex flex-col gap-4 w-full max-w-xs">
             <button onclick="initPeer('screen')" class="bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm cursor-pointer">
@@ -65,8 +65,8 @@
         <div class="space-y-3">
             <div class="text-center">
                 <h2 class="text-base font-bold text-indigo-400">🎛️ Premium Control</h2>
-                <div id="ctrl-python-status" class="inline-block mt-1 text-[11px] text-amber-400 font-bold bg-amber-900/30 px-3 py-1 rounded-lg border border-amber-500/30">
-                    ⏳ Python: รอการเชื่อมต่อ...
+                <div id="ctrl-python-status" class="inline-block mt-1 text-[11px] text-slate-400 font-medium bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
+                    ℹ️ Python Connected to Display Screen
                 </div>
             </div>
 
@@ -97,7 +97,6 @@
                     <button onclick="sendAction('shape', 'cone')" class="bg-slate-800 hover:bg-slate-700 py-2 rounded-md text-[10px] font-medium">ทรงกรวย</button>
                     <button onclick="sendAction('shape', 'custom_artifact')" class="bg-emerald-600 hover:bg-emerald-500 py-2 rounded-md text-[10px] font-bold shadow-lg text-white">🚪 Door Lock</button>
                 </div>
-                
                 <div class="pt-2 border-t border-slate-800">
                     <label class="block text-[11px] font-bold text-slate-300 mb-1">🎨 เลือกสี (เฉพาะรูปทรงเรขาคณิต)</label>
                     <input type="color" id="custom-color-picker" value="#00ffcc" oninput="sendAction('color', this.value)" class="w-full h-12 cursor-pointer rounded-md border-2 border-slate-600 bg-slate-900 p-1">
@@ -109,12 +108,12 @@
                     <span>ขยายขนาด (Scale)</span>
                     <span id="scale-val" class="text-indigo-400">100%</span>
                 </div>
-                <input type="range" min="30" max="200" value="100" oninput="document.getElementById('scale-val').innerText = this.value + '%'; sendAction('scale', this.value)" class="w-full accent-indigo-500">
+                <input type="range" min="30" max="250" value="100" oninput="document.getElementById('scale-val').innerText = this.value + '%'; sendAction('scale', this.value)" class="w-full accent-indigo-500">
                 <div class="flex justify-between text-[10px] font-bold text-slate-400 pt-2">
                     <span>ระยะศูนย์กลาง (Offset)</span>
                     <span id="offset-val" class="text-indigo-400">130px</span>
                 </div>
-                <input type="range" min="40" max="300" value="130" oninput="document.getElementById('offset-val').innerText = this.value + 'px'; sendAction('offset', this.value)" class="w-full accent-indigo-500">
+                <input type="range" min="40" max="400" value="130" oninput="document.getElementById('offset-val').innerText = this.value + 'px'; sendAction('offset', this.value)" class="w-full accent-indigo-500">
             </div>
         </div>
 
@@ -131,6 +130,7 @@
         let currentMode = 'touch';
         let videoElement, canvasElement, canvasCtx, detector;
         let animationFrameId, pythonSocket; 
+
         const viewAngles = [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3];
 
         function generateSimpleId() { return "uea-twin-" + Math.floor(1000 + Math.random() * 9000).toString(); }
@@ -180,13 +180,14 @@
                     recreateAllGeometries(data.value, currentColor);
                 } else if (data.type === 'color') {
                     currentMeshes.forEach(mesh => { 
-                        if(mesh.userData && mesh.userData.isCustom) return; 
+                        if(mesh.userData && mesh.userData.isCustom) return; // บล็อกรูปประตูล็อกไม่ให้โดนสาดสีทับ
                         if(mesh.material && mesh.material.color) mesh.material.color.set(data.value); 
                     });
                 } else if (data.type === 'scale') {
                     baseScale = data.value / 100;
                     currentMeshes.forEach(mesh => {
-                        let s = (mesh.userData && mesh.userData.isCustom) ? baseScale * 0.04 : baseScale;
+                        // คงอัตราส่วนปรับสเกลย่อยที่เหมาะสม
+                        let s = (mesh.userData && mesh.userData.isCustom) ? baseScale * 1.0 : baseScale;
                         mesh.scale.set(s, s, s);
                     });
                 } else if (data.type === 'offset') {
@@ -230,12 +231,9 @@
 
         function updatePythonStatusUI(isConnected) {
             const screenStatus = document.getElementById('screen-python-status');
-            const ctrlStatus = document.getElementById('ctrl-python-status');
             const msg = isConnected ? "🟢 Python: เชื่อมต่อสมองกลสำเร็จ!" : "🔴 Python: ขาดการเชื่อมต่อ";
             const bgClass = isConnected ? "bg-emerald-900/30 border-emerald-500/50 text-emerald-400" : "bg-red-900/30 border-red-500/50 text-red-400";
-            
             if (screenStatus) screenStatus.innerText = msg, screenStatus.className = `mt-2 text-[11px] font-bold px-3 py-1.5 rounded-lg border shadow-lg ${bgClass}`;
-            if (ctrlStatus) ctrlStatus.innerText = msg, ctrlStatus.className = `inline-block mt-1 text-[11px] font-bold px-3 py-1 rounded-lg border ${bgClass}`;
         }
 
         function switchControlMode(mode) {
@@ -293,7 +291,10 @@
             for (let i = 0; i < 3; i++) {
                 const scene = new THREE.Scene();
                 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-                camera.position.z = 6;
+                
+                // 🔍 ปรับระยะกล้องให้ออกห่างขึ้น (ซูมเอาต์) เพื่อรองรับวัตถุขนาดใหญ่ไม่ให้โดนขอบตัดขาด
+                camera.position.z = 7.5; 
+                
                 scene.add(new THREE.AmbientLight(0xffffff, 2.5)); 
                 const dirLight = new THREE.DirectionalLight(0xffffff, 3.0); 
                 dirLight.position.set(5, 5, 5);
@@ -320,13 +321,16 @@
                         const size = box.getSize(new THREE.Vector3());
                         const maxDim = Math.max(size.x, size.y, size.z);
                         
-                        const targetSize = 1.5; 
+                        // บีบอัดขนาดวัตถุให้คงที่พอดีหน้าจอเสมอ
+                        const targetSize = 1.6; 
                         const scaleFactor = targetSize / maxDim;
                         
-                        modelClone.scale.set(scaleFactor, scaleFactor, scaleFactor);
-                        modelClone.position.x = -center.x * scaleFactor;
-                        modelClone.position.y = -center.y * scaleFactor;
-                        modelClone.position.z = -center.z * scaleFactor;
+                        modelClone.scale.set(scaleFactor * baseScale, scaleFactor * baseScale, scaleFactor * baseScale);
+                        modelClone.position.x = -center.x * scaleFactor * baseScale;
+                        modelClone.position.y = -center.y * scaleFactor * baseScale;
+                        modelClone.position.z = -center.z * scaleFactor * baseScale;
+                        
+                        // เปิดล็อกค่าวัสดุดั้งเดิม: ห้ามไม่ให้โดนเทสีทับเด็ดขาด สีเบจ-แดง-ฟ้า จะอยู่ครบ!
                         modelClone.userData = { isCustom: true };
 
                         scenes[i].add(modelClone); currentMeshes.push(modelClone);
@@ -351,7 +355,10 @@
         function animate() {
             requestAnimationFrame(animate); renderer.clear();
             const centerX = window.innerWidth / 2, centerY = window.innerHeight / 2;
-            const size = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+            
+            // 🔍 [ขยายขอบเขตหน้าจอ 3 ด้าน]: เพิ่มค่าพื้นที่วิวพอร์ตจาก 0.35 ขยับขึ้นเป็น 0.45 เพื่อขยายกรอบการแสดงผลให้กว้างขวางขึ้น
+            const size = Math.min(window.innerWidth, window.innerHeight) * 0.45;
+            
             const viewports = [
                 { x: centerX - size / 2, y: centerY - size / 2 + baseOffset },
                 { x: centerX - size / 2 + (baseOffset * Math.cos((7 * Math.PI) / 6)), y: centerY - size / 2 + (baseOffset * Math.sin((7 * Math.PI) / 6)) },
