@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> 2 UEA Hologram Project </title>
+    <title> 3: UEA Hologram Project </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
@@ -18,10 +18,8 @@
             <p class="text-xs text-indigo-600 font-bold tracking-widest uppercase">School of Engineering Physics and Mathematics </p>
             <img src="uea-logo.png" alt="University Logo" class="h-12 w-auto opacity-80 hover:opacity-100 transition-all mx-auto mt-2">
         </div>
-
-        <h1 class="text-3xl font-black mb-2 text-slate-800"> EMP: "Hologram" Project </h1>
-        <p class="text-xs text-slate-500 mb-8 max-w-xs">ระบบฉายแสง 3 ด้านสมมาตร ควบคุมผ่าน Touchpad หรือกล้องสแกนวัตถจริง</p>
-        
+        <h1 class="text-3xl font-black mb-2 text-slate-800"> "Hologram" Project </h1>
+        <p class="text-xs text-slate-500 mb-8 max-w-xs">ระบบฉายแสง 3 ด้านสมมาตร ควบคุมผ่าน Touchpad หรือกล้องสแกนวัตถุจริง</p>
         <div class="flex flex-col gap-4 w-full max-w-xs">
             <button onclick="initPeer('screen')" class="bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm cursor-pointer">
                 📺 เปิดเป็นหน้าจอแสดงผล (สำหรับ iPad)
@@ -34,13 +32,6 @@
             <button onclick="showControllerSetup()" class="bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 text-sm cursor-pointer">
                 📱 เปิดเป็นรีโมตควบคุม (สำหรับมือถือ)
             </button>
-        </div>
-
-        <div class="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-xl text-left max-w-xs shadow-sm">
-            <h4 class="text-xs font-bold text-indigo-600 mb-1">📝 ข้อมูลระบบเบื้องหลัง:</h4>
-            <p class="text-[10px] text-slate-500 leading-relaxed">
-                ขับเคลื่อนพิกัดด้วยสมองกล Python และส่งผ่านข้อมูลไร้สายด้วยเทคโนโลยี WebRTC เพื่อสร้างแบบจำลองฝาแฝดดิจิทัล (Digital Twin)
-            </p>
         </div>
     </div>
 
@@ -106,19 +97,10 @@
                     <button onclick="sendAction('shape', 'cone')" class="bg-slate-800 hover:bg-slate-700 py-2 rounded-md text-[10px] font-medium">ทรงกรวย</button>
                     <button onclick="sendAction('shape', 'custom_artifact')" class="bg-emerald-600 hover:bg-emerald-500 py-2 rounded-md text-[10px] font-bold shadow-lg text-white">🚪 Door Lock</button>
                 </div>
-                <div class="pt-2 border-t border-slate-800">
-                    <label class="block text-[11px] font-bold text-slate-300 mb-1">🎨 เลือกสี (เฉพาะรูปทรงเรขาคณิต)</label>
-                    <input type="color" id="custom-color-picker" value="#00ffcc" oninput="sendAction('color', this.value)" class="w-full h-12 cursor-pointer rounded-md border-2 border-slate-600 bg-slate-900 p-1">
-                </div>
             </div>
-
+            
             <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-3">
                 <div class="flex justify-between text-[10px] font-bold text-slate-400">
-                    <span>ขยายขนาด (Scale)</span>
-                    <span id="scale-val" class="text-indigo-400">100%</span>
-                </div>
-                <input type="range" min="30" max="200" value="100" oninput="document.getElementById('scale-val').innerText = this.value + '%'; sendAction('scale', this.value)" class="w-full accent-indigo-500">
-                <div class="flex justify-between text-[10px] font-bold text-slate-400 pt-2">
                     <span>ระยะศูนย์กลาง (Offset)</span>
                     <span id="offset-val" class="text-indigo-400">130px</span>
                 </div>
@@ -135,7 +117,6 @@
     <script>
         let scenes = [], cameras = [], renderer, currentMeshes = [];
         let peer, conn, myRole = '';
-        let baseScale = 1.0;
         let baseOffset = 130; 
         let currentMode = 'touch';
         let videoElement, canvasElement, canvasCtx, detector;
@@ -186,20 +167,7 @@
         function setupReceiver() {
             conn.on('data', data => {
                 if (data.type === 'shape') {
-                    const picker = document.getElementById('custom-color-picker');
-                    const currentColor = picker ? picker.value : "#00ffcc";
-                    recreateAllGeometries(data.value, currentColor);
-                } else if (data.type === 'color') {
-                    currentMeshes.forEach(mesh => { 
-                        if(mesh.userData && mesh.userData.isCustom) return; 
-                        if(mesh.material && mesh.material.color) mesh.material.color.set(data.value); 
-                    });
-                } else if (data.type === 'scale') {
-                    baseScale = data.value / 100;
-                    currentMeshes.forEach(mesh => {
-                        let s = (mesh.userData && mesh.userData.isCustom) ? baseScale * 0.04 : baseScale;
-                        mesh.scale.set(s, s, s);
-                    });
+                    recreateAllGeometries(data.value, "#00ffcc");
                 } else if (data.type === 'offset') {
                     baseOffset = parseInt(data.value);
                 } else if (data.type === 'rotate') {
@@ -226,14 +194,8 @@
         }
 
         function connectToPythonBackend() {
-            console.log("⚡ กำลังเชื่อมต่อ Python Backend...");
             pythonSocket = new WebSocket('ws://127.0.0.1:8080');
-
-            pythonSocket.onopen = () => {
-                console.log("✅ เชื่อมต่อสำเร็จ!");
-                updatePythonStatusUI(true);
-            };
-
+            pythonSocket.onopen = () => updatePythonStatusUI(true);
             pythonSocket.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 if (data.type === 'twin_rotate') {
@@ -241,12 +203,7 @@
                     else if (myRole === 'controller') sendAction('twin_rotate', data.value);
                 }
             };
-
-            pythonSocket.onclose = () => {
-                updatePythonStatusUI(false);
-                setTimeout(connectToPythonBackend, 4000); 
-            };
-
+            pythonSocket.onclose = () => { updatePythonStatusUI(false); setTimeout(connectToPythonBackend, 4000); };
             pythonSocket.onerror = () => updatePythonStatusUI(false);
         }
 
@@ -254,32 +211,19 @@
             const screenStatus = document.getElementById('screen-python-status');
             const msg = isConnected ? "🟢 Python: เชื่อมต่อสมองกลสำเร็จ!" : "🔴 Python: ขาดการเชื่อมต่อ";
             const bgClass = isConnected ? "bg-emerald-900/30 border-emerald-500/50 text-emerald-400" : "bg-red-900/30 border-red-500/50 text-red-400";
-
-            if (screenStatus) { 
-                screenStatus.innerText = msg; 
-                screenStatus.className = `mt-2 text-[11px] font-bold px-3 py-1.5 rounded-lg border shadow-lg ${bgClass}`; 
-            }
+            if (screenStatus) screenStatus.innerText = msg, screenStatus.className = `mt-2 text-[11px] font-bold px-3 py-1.5 rounded-lg border shadow-lg ${bgClass}`;
         }
 
         function switchControlMode(mode) {
             currentMode = mode;
-            const btnTouch = document.getElementById('btn-touch-mode');
-            const btnTwin = document.getElementById('btn-twin-mode');
-            const areaTouch = document.getElementById('area-touch-mode');
-            const areaTwin = document.getElementById('area-twin-mode');
-
+            const btnTouch = document.getElementById('btn-touch-mode'), btnTwin = document.getElementById('btn-twin-mode');
+            const areaTouch = document.getElementById('area-touch-mode'), areaTwin = document.getElementById('area-twin-mode');
             if (mode === 'touch') {
-                btnTouch.className = "bg-indigo-600 py-2 rounded-lg text-xs font-bold shadow-md";
-                btnTwin.className = "bg-slate-800 py-2 rounded-lg text-xs font-bold";
-                areaTouch.classList.remove('hidden');
-                areaTwin.classList.add('hidden');
-                stopCameraStream();
+                btnTouch.className = "bg-indigo-600 py-2 rounded-lg text-xs font-bold shadow-md", btnTwin.className = "bg-slate-800 py-2 rounded-lg text-xs font-bold";
+                areaTouch.classList.remove('hidden'), areaTwin.classList.add('hidden'), stopCameraStream();
             } else {
-                btnTwin.className = "bg-indigo-600 py-2 rounded-lg text-xs font-bold shadow-md";
-                btnTouch.className = "bg-slate-800 py-2 rounded-lg text-xs font-bold";
-                areaTwin.classList.remove('hidden');
-                areaTouch.classList.add('hidden');
-                startCameraStream();
+                btnTwin.className = "bg-indigo-600 py-2 rounded-lg text-xs font-bold shadow-md", btnTouch.className = "bg-slate-800 py-2 rounded-lg text-xs font-bold";
+                areaTwin.classList.remove('hidden'), areaTouch.classList.add('hidden'), startCameraStream();
             }
         }
 
@@ -291,54 +235,26 @@
         }
 
         function startCameraStream() {
-            const constraints = { video: { facingMode: { ideal: "environment" } } };
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then(stream => {
-                    videoElement.srcObject = stream;
-                    videoElement.play();
-                    animationFrameId = requestAnimationFrame(processWebcamFrame);
-                })
-                .catch(err => {
-                    navigator.mediaDevices.getUserMedia({ video: true })
-                        .then(streamFallback => {
-                            videoElement.srcObject = streamFallback;
-                            videoElement.play();
-                            animationFrameId = requestAnimationFrame(processWebcamFrame);
-                        })
-                        .catch(errFallback => alert("ไม่สามารถเข้าถึงกล้องได้เลยครับ"));
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+                .then(stream => { videoElement.srcObject = stream; videoElement.play(); animationFrameId = requestAnimationFrame(processWebcamFrame); })
+                .catch(() => {
+                    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => { videoElement.srcObject = stream; videoElement.play(); animationFrameId = requestAnimationFrame(processWebcamFrame); });
                 });
         }
 
-        // แก้ไขฟังก์ชันปิดสตรีมกล้องให้ถูกต้องเพื่อความเสถียร
-        function stopCameraStream() { 
-            if (animationFrameId) cancelAnimationFrame(animationFrameId); 
-            if (videoElement && videoElement.srcObject) {
-                videoElement.srcObject.getTracks().forEach(track => track.stop());
-            }
-        }
+        function stopCameraStream() { if (animationFrameId) cancelAnimationFrame(animationFrameId); if (videoElement && videoElement.srcObject) videoElement.srcObject.getTracks().forEach(t => t.stop()); }
 
         function processWebcamFrame() {
             if (videoElement.readyState === videoElement.HAVE_CURRENT_DATA && currentMode === 'twin') {
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
+                canvasElement.width = videoElement.videoWidth; canvasElement.height = videoElement.videoHeight;
                 canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-                const imageData = canvasCtx.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const markers = detector.detect(imageData);
-                
+                const markers = detector.detect(canvasCtx.getImageData(0, 0, canvasElement.width, canvasElement.height));
                 if (markers.length > 0) {
-                    const marker = markers[0];
-                    canvasCtx.strokeStyle = "#39ff14";
-                    canvasCtx.lineWidth = 3;
-                    canvasCtx.beginPath();
-                    marker.corners.forEach((corner, i) => {
-                        if (i === 0) canvasCtx.moveTo(corner.x, corner.y);
-                        else canvasCtx.lineTo(corner.x, corner.y);
-                    });
-                    canvasCtx.closePath();
-                    canvasCtx.stroke();
-
-                    const c0 = marker.corners[0], c1 = marker.corners[1], c2 = marker.corners[2];
-                    const angleY = Math.atan2(c1.y - c0.y, c1.x - c0.x);
+                    const m = markers[0];
+                    canvasCtx.strokeStyle = "#39ff14"; canvasCtx.lineWidth = 3; canvasCtx.beginPath();
+                    m.corners.forEach((c, i) => i === 0 ? canvasCtx.moveTo(c.x, c.y) : canvasCtx.lineTo(c.x, c.y));
+                    canvasCtx.closePath(); canvasCtx.stroke();
+                    const angleY = Math.atan2(m.corners[1].y - m.corners[0].y, m.corners[1].x - m.corners[0].x);
                     sendAction('twin_rotate', { x: 0, y: -angleY, z: 0 });
                 }
             }
@@ -357,8 +273,9 @@
                 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
                 camera.position.z = 6;
                 
-                scene.add(new THREE.AmbientLight(0xffffff, 1.5)); 
-                const dirLight = new THREE.DirectionalLight(0xffffff, 2.0); 
+                // เพิ่มแสงสว่างอัดเข้าโมเดล
+                scene.add(new THREE.AmbientLight(0xffffff, 2.5)); 
+                const dirLight = new THREE.DirectionalLight(0xffffff, 3.0); 
                 dirLight.position.set(5, 5, 5);
                 scene.add(dirLight);
                 
@@ -369,7 +286,6 @@
             animate();
         }
 
-        // 🔌 อุดรอยรั่วจุดที่ 2: แก้ไขโครงสร้างสถาปัตยกรรมการรับส่งไฟล์โมเดล .glb ข้ามสาย PeerJS
         function recreateAllGeometries(type, colorHex) {
             for (let i = 0; i < 3; i++) { if (currentMeshes[i]) scenes[i].remove(currentMeshes[i]); }
             currentMeshes = [];
@@ -381,16 +297,22 @@
                         const modelClone = gltf.scene.clone();
                         modelClone.rotation.y = viewAngles[i];
                         
+                        // 🌟 ระบบคำนวณ Auto-Scale ย่อส่วนขนาดอัจฉริยะ (แก้ปัญหาภาพทะลุจอ 100%)
                         const box = new THREE.Box3().setFromObject(modelClone);
                         const center = box.getCenter(new THREE.Vector3());
-                        modelClone.position.x += (modelClone.position.x - center.x);
-                        modelClone.position.y += (modelClone.position.y - center.y);
-                        modelClone.position.z += (modelClone.position.z - center.z);
-
-                        // บังคับสเกลให้ย่อลงพอดีคำ
-                        let initScale = baseScale * 4.0; 
-                        modelClone.scale.set(initScale, initScale, initScale);
-                        modelClone.userData = { isCustom: true };
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        
+                        // บังคับให้ด้านที่ใหญ่ที่สุดของโมเดลมีขนาดเท่ากับ 1.5 หน่วยเป๊ะๆ
+                        const targetSize = 1.5; 
+                        const scaleFactor = targetSize / maxDim;
+                        
+                        modelClone.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                        
+                        // จัดโมเดลให้อยู่กึ่งกลางเป๊ะ
+                        modelClone.position.x = -center.x * scaleFactor;
+                        modelClone.position.y = -center.y * scaleFactor;
+                        modelClone.position.z = -center.z * scaleFactor;
 
                         scenes[i].add(modelClone);
                         currentMeshes.push(modelClone);
@@ -408,7 +330,6 @@
                 for (let i = 0; i < 3; i++) {
                     const mesh = new THREE.Mesh(geometry, material.clone());
                     mesh.rotation.y = viewAngles[i];
-                    mesh.scale.set(baseScale, baseScale, baseScale);
                     scenes[i].add(mesh); currentMeshes.push(mesh);
                 }
             }
